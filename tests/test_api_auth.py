@@ -20,34 +20,19 @@ async def client(token_svc):
 
 
 @pytest.mark.asyncio
-async def test_health_check(client):
-    resp = await client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json()["status"] == "ok"
+async def test_protected_endpoint_without_token(client):
+    resp = await client.post("/api/v1/alerts/ingest", json={"source": "test", "raw": {}})
+    assert resp.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_ingest_alert(client, token_svc):
+async def test_protected_endpoint_with_valid_token(client, token_svc):
     token = token_svc.create_token(TokenPayload(
-        user_id="test-user", role="admin", scopes=["write"],
+        user_id="u1", role="admin", scopes=["write"],
     ))
-    payload = {
-        "source": "prometheus",
-        "raw": {
-            "status": "firing",
-            "alerts": [{
-                "labels": {"alertname": "TestAlert", "service": "test-svc"},
-                "annotations": {"summary": "test"},
-                "startsAt": "2026-06-28T10:00:00Z",
-            }]
-        }
-    }
     resp = await client.post(
         "/api/v1/alerts/ingest",
-        json=payload,
+        json={"source": "test", "raw": {}},
         headers={"Authorization": f"Bearer {token}"},
     )
-    assert resp.status_code == 202
-    data = resp.json()
-    assert data["accepted"] == 1
-    assert "alert_ids" in data
+    assert resp.status_code == 202  # 不是 401

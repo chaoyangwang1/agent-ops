@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from src.pipeline.adapters import AlertNormalizer
 from src.infra.kafka_client import KafkaManager
 from src.config import settings
+from src.api.dependencies import require_auth
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -27,7 +28,8 @@ async def health():
 
 
 @router.post("/api/v1/alerts/ingest", response_model=IngestResponse, status_code=202)
-async def ingest_alert(req: IngestRequest, kafka: KafkaManager = Depends(get_kafka)):
+async def ingest_alert(req: IngestRequest, kafka: KafkaManager = Depends(get_kafka),
+                       auth: dict = Depends(require_auth)):
     alerts = AlertNormalizer.normalize(req.source, req.raw)
     for alert in alerts:
         kafka.produce(settings.kafka_topic_raw_alerts, alert.__dict__)
