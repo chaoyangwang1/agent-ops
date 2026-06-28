@@ -1,4 +1,4 @@
-from typing import TypedDict, List
+from typing import TypedDict, List, Optional
 from enum import Enum
 
 
@@ -23,3 +23,7 @@ class AgentState(TypedDict):
     mode: str
     step_count: int
     start_time: float
+    conversation_id: str
+    llm_failures: int
+    tools_failed: bool
+    truncated: bool
