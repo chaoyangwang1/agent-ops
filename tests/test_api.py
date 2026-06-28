@@ -1,7 +1,9 @@
 import pytest
+from unittest.mock import Mock
 from httpx import AsyncClient, ASGITransport
 from src.api.main import create_app
 from src.api.dependencies import get_token_service
+from src.api.routes import get_kafka
 from src.auth.token_service import TokenService, TokenPayload
 
 
@@ -14,6 +16,7 @@ def token_svc():
 async def client(token_svc):
     app = create_app()
     app.dependency_overrides[get_token_service] = lambda: token_svc
+    app.dependency_overrides[get_kafka] = lambda: Mock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c

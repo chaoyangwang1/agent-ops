@@ -16,9 +16,10 @@ def test_create_topics(kafka_mgr):
 
 
 def test_produce_and_consume(kafka_mgr):
-    topic = "raw.alerts"
-    test_msg = {"alert_id": "test-001", "severity": "critical"}
+    topic = "test.kafka.client"
+    test_id = "kafka-test-001"
+    test_msg = {"alert_id": test_id, "severity": "critical"}
     kafka_mgr.produce(topic, test_msg)
     messages = kafka_mgr.consume(topic, max_messages=1, timeout=5)
     assert len(messages) == 1
-    assert messages[0]["alert_id"] == "test-001"
+    assert messages[0]["alert_id"] == test_id
