@@ -1,0 +1,35 @@
+[project]
+name = "agent-ops"
+version = "0.1.0"
+description = "OPS AI Agent 智能告警平台"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.109",
+    "uvicorn[standard]>=0.27",
+    "kafka-python>=2.0",
+    "elasticsearch>=8.12",
+    "neo4j>=5.18",
+    "psycopg[binary]>=3.1",
+    "redis>=5.0",
+    "chromadb>=0.4",
+    "langgraph>=0.0.40",
+    "langchain>=0.1",
+    "langchain-openai>=0.0.5",
+    "httpx>=0.26",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.1",
+    "python-dotenv>=1.0",
+    "prometheus-client>=0.19",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "black>=24.0",
+    "ruff>=0.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
