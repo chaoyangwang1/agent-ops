@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import PlainTextResponse
+from prometheus_client import generate_latest
 from src.pipeline.adapters import AlertNormalizer
 from src.infra.kafka_client import KafkaManager
 from src.config import settings
@@ -25,6 +27,11 @@ def get_kafka():
 @router.get("/health")
 async def health():
     return {"status": "ok", "version": "0.1.0"}
+
+
+@router.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    return generate_latest()
 
 
 @router.post("/api/v1/alerts/ingest", response_model=IngestResponse, status_code=202)
