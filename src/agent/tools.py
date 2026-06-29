@@ -4,8 +4,8 @@ from src.infra.neo4j_client import Neo4jClient
 from src.config import settings
 
 
-def create_agent_tools(es_client=None, neo4j_client=None) -> ToolRegistry:
-    """创建 Agent 可用的工具集（Phase 2 范围：ES 日志 + Neo4j 拓扑）"""
+def create_agent_tools(es_client=None, neo4j_client=None, incident_store=None) -> ToolRegistry:
+    """创建 Agent 可用的工具集（Phase 3 范围：ES 日志 + Neo4j 拓扑 + 历史故障检索）"""
     registry = ToolRegistry()
 
     # search_logs 工具
@@ -78,5 +78,26 @@ def create_agent_tools(es_client=None, neo4j_client=None) -> ToolRegistry:
             description="评估故障爆炸半径",
             parameters={"service": {"type": "string"}, "hops": {"type": "integer"}},
         ), handler=lambda **kw: {"affected_services": [], "note": "Neo4j 不可用"})
+
+    # search_similar_incidents 工具
+    if incident_store:
+        def _search_similar_incidents(description: str, top_k: int = 5) -> dict:
+            results = incident_store.search_similar(description, top_k=top_k)
+            return {"total": len(results), "incidents": results}
+
+        registry.register(ToolDefinition(
+            name="search_similar_incidents",
+            description="搜索历史相似故障案例（向量语义检索），帮助判断是否发生过类似问题",
+            parameters={
+                "description": {"type": "string", "description": "故障描述（自然语言）"},
+                "top_k": {"type": "integer", "description": "返回最相似的 K 条结果，默认 5"},
+            },
+        ), handler=_search_similar_incidents)
+    else:
+        registry.register(ToolDefinition(
+            name="search_similar_incidents",
+            description="搜索历史相似故障案例",
+            parameters={"description": {"type": "string"}, "top_k": {"type": "integer"}},
+        ), handler=lambda **kw: {"total": 0, "incidents": [], "note": "知识库不可用"})
 
     return registry
