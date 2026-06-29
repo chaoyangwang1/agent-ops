@@ -67,8 +67,9 @@ def test_l3_block_high_risk_outside_window():
 
 
 def test_high_risk_always_needs_approval():
-    """高风险操作一律需要审批"""
-    engine = PolicyEngine()
+    """高风险操作一律需要审批（使用 24 小时变更窗口避免时间限制）"""
+    engine = PolicyEngine(change_window_start=0, change_window_end=24,
+                          change_window_days=[0, 1, 2, 3, 4, 5, 6])
     action = make_action("rollback_deployment", risk="high")
     result = engine.evaluate(action)
     assert result == PolicyResult.NEEDS_APPROVAL
