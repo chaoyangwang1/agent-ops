@@ -35,6 +35,16 @@ class Settings(BaseSettings):
     # Agent
     agent_max_steps: int = 15
     agent_max_duration_seconds: int = 300
+    agent_auto_trigger: bool = False
+
+    # Milvus
+    milvus_host: str = "localhost"
+    milvus_port: str = "19530"
+    milvus_enabled: bool = True
+
+    # ChatOps
+    feishu_webhook_url: str = ""
+    dingtalk_webhook_url: str = ""
 
     model_config = {"env_file": ".env", "env_prefix": "AGENTOPS_"}
 
