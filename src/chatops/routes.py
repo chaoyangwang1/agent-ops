@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from src.conversation.repository import ConversationRepository
 from src.infra.database import Database
 from src.config import settings
@@ -58,3 +58,30 @@ async def list_conversations(service: str = None, severity: str = None, limit: i
         "duration_seconds": r.duration_seconds,
         "created_at": r.created_at.isoformat() if r.created_at else None,
     } for r in results]
+
+
+from src.execution.approval import ApprovalService
+
+_approval_service = ApprovalService()
+
+
+@router.post("/approval/callback")
+async def approval_callback(
+    approval_id: str = Body(...),
+    status: str = Body(...),
+    reason: str = Body(""),
+    auth: dict = Depends(require_auth),
+):
+    if status == "approved":
+        result = _approval_service.approve(approval_id)
+    else:
+        result = _approval_service.deny(approval_id, reason)
+    return {"approval_id": approval_id, "status": result.value}
+
+
+@router.get("/audit/logs")
+async def list_audit_logs(
+    limit: int = 20,
+    auth: dict = Depends(require_auth),
+):
+    return {"logs": [], "total": 0, "note": "审计查询需要 PG 连接"}
